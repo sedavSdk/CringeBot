@@ -17,6 +17,7 @@ async def on_ready():
 
 music_queue = []
 
+da = "gadost21"
 
 async def play_music(ctx, url):
     channel = ctx.author.voice.channel
