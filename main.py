@@ -1,9 +1,12 @@
 import discord
-import youtube_dl
-import asyncio
+from youtube_dl import YoutubeDL
+from asyncio import sleep
 import nacl
 from decouple import config
 
+
+YDL_OPTIONS = {'format': 'bestaudio', 'noplaylist':'False'}
+FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -18,30 +21,30 @@ async def on_ready():
 music_queue = []
 
 da = "gadost21"
+@bot.command()
+async def play_music(ctx, arg):
+    global vc
+    try:
+        voice_channel = ctx.message.author.voice.channel
+        vc = await voice_channel.connect()
+    except:
+        print('Уже подключен или не удалось подключиться')
 
-async def play_music(ctx, url):
-    channel = ctx.author.voice.channel
-    voice_client = await channel.connect()
+    if vc.is_playing():
+        await ctx.send(f'{ctx.message.author.mention}, музыка уже проигрывается.')
 
-    ydl_opts = {
-        'format': 'bestaudio/best',
-        'postprocessors': [{
-            'key': 'FFmpegExtractAudio',
-            'preferredcodec': 'mp3',
-            'preferredquality': '192',
-        }],
-        'quiet': True,
-    }
+    else:
+        with YoutubeDL(YDL_OPTIONS) as ydl:
+            info = ydl.extract_info(arg, download=False)
 
-    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-        print(url)
-        info = ydl.extract_info(url, download=False)
-        url2 = info['formats'][0]['url']
+        URL = info['formats'][0]['url']
 
-    voice_client.play(discord.FFmpegPCMAudio(url2))
-    while voice_client.is_playing():
-        await asyncio.sleep(1)
-    await voice_client.disconnect()
+        vc.play(discord.FFmpegPCMAudio(executable="ffmpeg\\ffmpeg.exe", source = URL, **FFMPEG_OPTIONS))
+                
+        while vc.is_playing():
+            await sleep(1)
+        if not vc.is_paused():
+            await vc.disconnect()
 
 
 @client.event
@@ -51,6 +54,7 @@ async def on_ready():
 
 @client.event
 async def on_message(message):
+    
     if message.author == client.user:
         return
 
@@ -58,6 +62,7 @@ async def on_message(message):
         await message.channel.send('Hello!')
 
     if message.content.startswith('!play'):
+
         url = message.content[6:]
         music_queue.append(url)
 
@@ -67,5 +72,3 @@ async def on_message(message):
 
 
 client.run(config('TOKEN'))
-
-print("нет ты")
