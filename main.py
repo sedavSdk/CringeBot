@@ -2,6 +2,8 @@ import discord
 import youtube_dl
 import asyncio
 import nacl
+from decouple import config
+
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -64,4 +66,4 @@ async def on_message(message):
                 await play_music(message, music_queue.pop(0))
 
 
-client.run('MTE1NDM5NTAxMzYwNjgxMzg1Ng.GNJlRS.TLV_4-Wk2133-yDKpPdb7FNM2zJPyz0OdthZYk')
+client.run(config('TOKEN'))
