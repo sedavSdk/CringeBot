@@ -66,3 +66,5 @@ async def on_message(message):
 
 
 client.run(config('TOKEN'))
+
+print("ты пидор")
