@@ -52,7 +52,10 @@ def music_queue(ctx):
     if not voice.is_playing():
         voice.play(discord.FFmpegPCMAudio(music[now_playing], **FFMPEG_OPTIONS), after=lambda e: music_end(ctx))
  
-@client.tree.command()
+@client.tree.command(description='Включить музыку (очевидно)')
+@app_commands.describe(
+    url='ссылка на ютуб'
+)
 async def play(ctx, url : str):
     global music, now_playing
     ydl_options = {
@@ -90,7 +93,7 @@ async def play(ctx, url : str):
             music_queue(ctx)
             
  
-@client.tree.command()
+@client.tree.command(description='Покинуть гс канал')
 async def leave(ctx):
     voice_client = discord.utils.get(ctx.bot.voice_clients, guild=ctx.guild)
     print("da1")
@@ -98,19 +101,19 @@ async def leave(ctx):
         print("da2")
         await voice_client.disconnect()
  
-@client.tree.command()
+@client.tree.command(description='Поставить музыку на паузу')
 async def pause(ctx):
     voice = discord.utils.get(client.voice_clients, guild=ctx.guild)
     if voice.is_playing():
         voice.pause()
  
-@client.tree.command()
+@client.tree.command(description='Продолжить проигрывание')
 async def resume(ctx):
     voice = discord.utils.get(client.voice_clients, guild=ctx.guild)
     if voice.is_paused():
         voice.resume()
  
-@client.tree.command()
+@client.tree.command(description='Выключить (скорее всего вы это юзать не можете)')
 async def stop(ctx):
     voice_client = discord.utils.get(ctx.bot.voice_clients, guild=ctx.guild)
     if is_connected(voice_client):
