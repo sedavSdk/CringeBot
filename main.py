@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+from discord.ext.commands import has_permissions, MissingPermissions
 from discord import app_commands
 import youtube_dl
 import os, sys
@@ -13,20 +14,9 @@ MY_GUILD = discord.Object(id=318051378972983297)
 class MyClient(discord.Client):
     def __init__(self, *, intents: discord.Intents):
         super().__init__(command_prefix='/', intents=intents)
-        # A CommandTree is a special type that holds all the application command
-        # state required to make it work. This is a separate class because it
-        # allows all the extra state to be opt-in.
-        # Whenever you want to work with application commands, your tree is used
-        # to store and work with them.
-        # Note: When using commands.Bot instead of discord.Client, the bot will
-        # maintain its own tree instead.
         self.tree = app_commands.CommandTree(self)
 
-    # In this basic example, we just synchronize the app commands to one guild.
-    # Instead of specifying a guild to every command, we copy over our global commands instead.
-    # By doing so, we don't have to wait up to an hour until they are shown to the end-user.
     async def setup_hook(self):
-        # This copies the global commands over to your guild.
         self.tree.copy_global_to(guild=MY_GUILD)
         await self.tree.sync(guild=MY_GUILD)
  
@@ -56,7 +46,8 @@ def music_queue(ctx):
 @app_commands.describe(
     url='ссылка на ютуб'
 )
-async def play(ctx, url : str):
+async def play(interaction: discord.Interaction, url : str):
+    await interaction.response.send_message('включаю')
     global music, now_playing
     ydl_options = {
         'format': 'bestaudio/best',
@@ -69,12 +60,12 @@ async def play(ctx, url : str):
     }
     
     
-    if ctx.message.author.voice == None:
-        await ctx.send("Зайди в канал, дибила кусок")
+    if interaction.user.voice == None:
+        await interaction.send("Зайди в канал, дибила кусок")
         return
     
-    voiceChannel = ctx.message.author.voice.channel
-    voice = discord.utils.get(client.voice_clients, guild=ctx.guild)
+    voiceChannel = interaction.user.voice.channel
+    voice = discord.utils.get(interaction.client.voice_clients, guild=interaction.guild)
  
     if not is_connected(voice):
         voice = await voiceChannel.connect()
@@ -90,32 +81,37 @@ async def play(ctx, url : str):
             info = ydl.extract_info(url, download=False)
             URL = info['formats'][0]['url']
             music.append(URL)
-            music_queue(ctx)
+            music_queue(interaction)
             
  
 @client.tree.command(description='Покинуть гс канал')
-async def leave(ctx):
-    voice_client = discord.utils.get(ctx.bot.voice_clients, guild=ctx.guild)
+async def leave(interaction: discord.Interaction):
+    await interaction.response.send_message('бб')
+    voice_client = discord.utils.get(interaction.client.voice_clients, guild=interaction.guild)
     print("da1")
     if is_connected(voice_client):
         print("da2")
         await voice_client.disconnect()
  
 @client.tree.command(description='Поставить музыку на паузу')
-async def pause(ctx):
-    voice = discord.utils.get(client.voice_clients, guild=ctx.guild)
+async def pause(interaction: discord.Interaction):
+    await interaction.response.send_message('пауза')
+    voice = discord.utils.get(client.voice_clients, guild=interaction.guild)
     if voice.is_playing():
         voice.pause()
  
 @client.tree.command(description='Продолжить проигрывание')
-async def resume(ctx):
-    voice = discord.utils.get(client.voice_clients, guild=ctx.guild)
+async def resume(interaction: discord.Interaction):
+    await interaction.response.send_message('продолжаю')
+    voice = discord.utils.get(client.voice_clients, guild=interaction.guild)
     if voice.is_paused():
         voice.resume()
  
 @client.tree.command(description='Выключить (скорее всего вы это юзать не можете)')
-async def stop(ctx):
-    voice_client = discord.utils.get(ctx.bot.voice_clients, guild=ctx.guild)
+@has_permissions(manage_roles=True, ban_members=True)
+async def stop(interaction: discord.Interaction):
+    await interaction.response.send_message('я в ахуе')
+    voice_client = discord.utils.get(interaction.client.voice_clients, guild=interaction.guild)
     if is_connected(voice_client):
         await voice_client.disconnect()
     sys.exit()
