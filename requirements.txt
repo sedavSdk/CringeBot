@@ -1,5 +1,3 @@
 discord
 youtube_dl
-asyncio
 python-decouple
-PyNaCl
