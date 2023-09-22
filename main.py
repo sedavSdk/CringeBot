@@ -27,7 +27,7 @@ def music_queue(ctx):
         return
     voice = discord.utils.get(client.voice_clients, guild=ctx.guild)
     if not voice.is_playing():
-        voice.play(discord.FFmpegPCMAudio(music[now_playing], **FFMPEG_OPTIONS), after=lambda e: music_end(ctx))
+        voice.play(discord.FFmpegPCMAudio(music[now_playing], executable="C:\\Users\\sedav\\Downloads\\ffmpeg-master-latest-win64-lgpl\\bin\\ffmpeg.exe", **FFMPEG_OPTIONS), after=lambda e: music_end(ctx))
 
 @client.command()
 async def play(ctx, url : str):
