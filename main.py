@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+from discord import app_commands
 import youtube_dl
 import os, sys
 import asyncio
@@ -7,10 +8,32 @@ from decouple import config
  
 intents = discord.Intents.default()
 intents.message_content = True
+MY_GUILD = discord.Object(id=318051378972983297)
+
+class MyClient(discord.Client):
+    def __init__(self, *, intents: discord.Intents):
+        super().__init__(command_prefix='/', intents=intents)
+        # A CommandTree is a special type that holds all the application command
+        # state required to make it work. This is a separate class because it
+        # allows all the extra state to be opt-in.
+        # Whenever you want to work with application commands, your tree is used
+        # to store and work with them.
+        # Note: When using commands.Bot instead of discord.Client, the bot will
+        # maintain its own tree instead.
+        self.tree = app_commands.CommandTree(self)
+
+    # In this basic example, we just synchronize the app commands to one guild.
+    # Instead of specifying a guild to every command, we copy over our global commands instead.
+    # By doing so, we don't have to wait up to an hour until they are shown to the end-user.
+    async def setup_hook(self):
+        # This copies the global commands over to your guild.
+        self.tree.copy_global_to(guild=MY_GUILD)
+        await self.tree.sync(guild=MY_GUILD)
  
-client = commands.Bot(command_prefix='!', intents=intents)
+client = MyClient(intents=intents)
 music = []
 now_playing = 0
+
  
 def is_connected(voice_client):
     return voice_client and voice_client.is_connected()
@@ -29,7 +52,10 @@ def music_queue(ctx):
     if not voice.is_playing():
         voice.play(discord.FFmpegPCMAudio(music[now_playing], **FFMPEG_OPTIONS), after=lambda e: music_end(ctx))
  
-@client.command()
+@client.tree.command(description='Включить музыку (очевидно)')
+@app_commands.describe(
+    url='ссылка на ютуб'
+)
 async def play(ctx, url : str):
     global music, now_playing
     ydl_options = {
@@ -67,7 +93,7 @@ async def play(ctx, url : str):
             music_queue(ctx)
             
  
-@client.command()
+@client.tree.command(description='Покинуть гс канал')
 async def leave(ctx):
     voice_client = discord.utils.get(ctx.bot.voice_clients, guild=ctx.guild)
     print("da1")
@@ -75,19 +101,19 @@ async def leave(ctx):
         print("da2")
         await voice_client.disconnect()
  
-@client.command()
+@client.tree.command(description='Поставить музыку на паузу')
 async def pause(ctx):
     voice = discord.utils.get(client.voice_clients, guild=ctx.guild)
     if voice.is_playing():
         voice.pause()
  
-@client.command()
+@client.tree.command(description='Продолжить проигрывание')
 async def resume(ctx):
     voice = discord.utils.get(client.voice_clients, guild=ctx.guild)
     if voice.is_paused():
         voice.resume()
  
-@client.command()
+@client.tree.command(description='Выключить (скорее всего вы это юзать не можете)')
 async def stop(ctx):
     voice_client = discord.utils.get(ctx.bot.voice_clients, guild=ctx.guild)
     if is_connected(voice_client):
