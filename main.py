@@ -13,6 +13,9 @@ client = commands.Bot(command_prefix='!', intents=intents)
 music = []
 now_playing = 0
 
+bot_log = 'bot-logs'
+isLog = True
+
 WHITELIST = 0
 BLACKLIST = 1
 
@@ -23,7 +26,15 @@ users_status = WHITELIST
 channels = [[], []]
 channels_status = BLACKLIST
 
-def check_role(ctx, user):
+async def log(ctx, message):
+    global isLog, bot_log
+    if isLog:
+        channel1 = discord.utils.get(ctx.guild.channels, name=bot_log)
+        print(channel1)
+        await channel1.send(message)
+
+def check_role(ctx):
+    user = ctx.author
     if user.guild_permissions.administrator:
         return True
     if roles_status == WHITELIST:
@@ -37,7 +48,8 @@ def check_role(ctx, user):
                 return False
         return True
     
-def check_user(ctx, user):
+def check_user(ctx):
+    user = ctx.author
     if user.guild_permissions.administrator:
         return True
     if users_status == WHITELIST:
@@ -162,11 +174,49 @@ async def stop(ctx):
     sys.exit()
 
 @client.command()
-async def role(ctx):
-    user = ctx.message.author
-    print(check_role(ctx, user))
-    print(check_user(ctx, user))
-    print(check_channel(ctx))
+async def access(ctx, accessList, typeList, data):
+    global roles, users, channels, roles_status, users_status, channels_status
+    if accessList.lower() in ["users", "roles", "channels"]:
+        edit = [users, roles, channels][["users", "roles", "channels"].index(accessList.lower())]
+        if typeList.lower() in ["whitelist", "blacklist"]:
+            wl = [WHITELIST, BLACKLIST][["whitelist", "blacklist"].index(typeList.lower())]
+            edit[wl].append(data)
+        else:
+            ctx.send("Неправильный тип, используйте whitelist или blacklist")
+    else:
+        ctx.send("Неправильный список, используйте users, roles или channels")
+
+@client.command()
+async def changeAccess(ctx, accessList):
+    global roles, users, channels, roles_status, users_status, channels_status
+    if accessList.lower() in ["users", "roles", "channels"]:
+        accessList = accessList.lower()
+        message = str(ctx.author) + ' изменил тип {} с '.format(accessList)
+        if accessList == "users":
+            message += ['whitelist', 'blacklist'][users_status]
+            users_status = (users_status + 1) % 2
+            message += ' на ' + ['whitelist', 'blacklist'][users_status]
+        elif accessList == "roles":
+            message += ['whitelist', 'blacklist'][roles_status]
+            roles_status = (roles_status + 1) % 2
+            message += ' на ' + ['whitelist', 'blacklist'][roles_status]
+        elif accessList == "channels":
+            message += ['whitelist', 'blacklist'][channels_status]
+            channels_status = (channels_status + 1) % 2
+            message += ' на ' + ['whitelist', 'blacklist'][channels_status]
+        await log(ctx, message)
+    else:
+        ctx.send("Неправильный список, используйте users, roles или channels")
+        
+    
+
+
+@client.command()
+async def test(ctx):
+    print(str(ctx.author), str(ctx.author) == "Taiko")
+                
+
+
     
  
  
