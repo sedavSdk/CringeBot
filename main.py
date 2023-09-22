@@ -8,13 +8,13 @@ import asyncio
 from decouple import config
  
 intents = discord.Intents.default()
+intents.members = True
 intents.message_content = True
 MY_GUILD = discord.Object(id=318051378972983297)
 
-class MyClient(discord.Client):
+class MyClient(commands.Bot):
     def __init__(self, *, intents: discord.Intents):
         super().__init__(command_prefix='/', intents=intents)
-        self.tree = app_commands.CommandTree(self)
 
     async def setup_hook(self):
         self.tree.copy_global_to(guild=MY_GUILD)
@@ -47,6 +47,7 @@ def music_queue(ctx):
     url='ссылка на ютуб'
 )
 async def play(interaction: discord.Interaction, url : str):
+    print(interaction.user.roles)
     await interaction.response.send_message('включаю')
     global music, now_playing
     ydl_options = {
@@ -107,11 +108,10 @@ async def resume(interaction: discord.Interaction):
     if voice.is_paused():
         voice.resume()
  
-@client.tree.command(description='Выключить (скорее всего вы это юзать не можете)')
-@has_permissions(manage_roles=True, ban_members=True)
-async def stop(interaction: discord.Interaction):
-    await interaction.response.send_message('я в ахуе')
-    voice_client = discord.utils.get(interaction.client.voice_clients, guild=interaction.guild)
+@commands.has_role('botMaster')
+@client.command(description='Выключить (скорее всего вы это юзать не можете)')
+async def stop(ctx):
+    voice_client = discord.utils.get(ctx.bot.voice_clients, guild=ctx.guild)
     if is_connected(voice_client):
         await voice_client.disconnect()
     sys.exit()
