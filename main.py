@@ -3,6 +3,7 @@ from discord.ext import commands
 import youtube_dl
 import os, sys
 import asyncio
+import json
 from decouple import config
  
 intents = discord.Intents.default()
@@ -11,7 +12,47 @@ intents.message_content = True
 client = commands.Bot(command_prefix='!', intents=intents)
 music = []
 now_playing = 0
- 
+
+WHITELIST = 0
+BLACKLIST = 1
+
+roles = [[], []]
+roles_status = WHITELIST
+users = [[], []]
+users_status = WHITELIST
+channels = [[], []]
+channels_status = BLACKLIST
+
+def check_role(ctx, user):
+    if user.guild_permissions.administrator:
+        return True
+    if roles_status == WHITELIST:
+        for role in user.roles:
+            if role in roles[WHITELIST]:
+                return True
+        return False
+    else:
+        for role in user.roles:
+            if role in roles[BLACKLIST]:
+                return False
+        return True
+    
+def check_user(ctx, user):
+    if user.guild_permissions.administrator:
+        return True
+    if users_status == WHITELIST:
+        return user in users[WHITELIST]
+    else:
+        return user not in users[BLACKLIST]
+        
+def check_channel(ctx):
+    channel = ctx.channel
+    if channels_status == WHITELIST:
+        return channel in channels[WHITELIST]
+    else:
+        return channel not in channels[BLACKLIST]
+        
+
 def is_connected(voice_client):
     return voice_client and voice_client.is_connected()
  
@@ -28,6 +69,19 @@ def music_queue(ctx):
     voice = discord.utils.get(client.voice_clients, guild=ctx.guild)
     if not voice.is_playing():
         voice.play(discord.FFmpegPCMAudio(music[now_playing], **FFMPEG_OPTIONS), after=lambda e: music_end(ctx))
+
+@client.event
+async def on_ready():
+    global roles, users, channels, roles_status, users_status, channels_status
+    try:
+        with open('data.json', 'r') as f:
+            data = json.load(f)
+            roles = data['roles']
+            roles_status = data['roles_status']
+            users = data['users']
+            channels = data['channels']
+    except:
+        pass
  
 @client.command()
 async def play(ctx, url : str):
@@ -88,11 +142,32 @@ async def resume(ctx):
         voice.resume()
  
 @client.command()
+@commands.has_role("botMaster")
 async def stop(ctx):
+    global roles, users, channels, roles_status, users_status, channels_status
     voice_client = discord.utils.get(ctx.bot.voice_clients, guild=ctx.guild)
     if is_connected(voice_client):
         await voice_client.disconnect()
+    with open('data.json', 'w') as f:
+        data = {
+            'users': users,
+            'users_status': users_status,
+            'roles': roles,
+            'roles_status': roles_status,
+            'channels': channels,
+            'channels_status': channels_status
+        }
+        json.dump(data, f)
+        
     sys.exit()
+
+@client.command()
+async def role(ctx):
+    user = ctx.message.author
+    print(check_role(ctx, user))
+    print(check_user(ctx, user))
+    print(check_channel(ctx))
+    
  
  
 client.run(config('TOKEN'))
