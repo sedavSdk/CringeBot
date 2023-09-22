@@ -96,3 +96,4 @@ async def stop(ctx):
 
 
 client.run(config('TOKEN'))
+print(123)
