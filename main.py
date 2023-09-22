@@ -3,26 +3,53 @@ from discord.ext import commands
 import youtube_dl
 import os, sys
 import asyncio
-from bot_shit import *
 from decouple import config
 
 intents = discord.Intents.default()
 intents.message_content = True
 
 client = commands.Bot(command_prefix='!', intents=intents)
+music = []
+now_playing = 0
+
+def is_connected(voice_client):
+    return voice_client and voice_client.is_connected()
+
+def music_end(ctx):
+    global music, now_playing
+    now_playing += 1
+    music_queue(ctx)
+
+def music_queue(ctx):
+    global music, now_playing
+    FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
+    if now_playing >= len(music):
+        return
+    voice = discord.utils.get(client.voice_clients, guild=ctx.guild)
+    if not voice.is_playing():
+        voice.play(discord.FFmpegPCMAudio(music[now_playing], **FFMPEG_OPTIONS), after=lambda e: music_end(ctx))
 
 @client.command()
 async def play(ctx, url : str):
+    global music, now_playing
     ydl_options = {
         'format': 'bestaudio/best',
-        'noplaylist': 'False',
+        'postprocessors': [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'mp3',
+            'preferredquality': '192',
+
+        }]
     }
-    FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
-    voiceChannel = ctx.message.author.voice.channel
-    if voiceChannel == None:
+    
+    
+    if ctx.message.author.voice == None:
         await ctx.send("Зайди в канал, дибила кусок")
         return
+    
+    voiceChannel = ctx.message.author.voice.channel
     voice = discord.utils.get(client.voice_clients, guild=ctx.guild)
+
     if not is_connected(voice):
         voice = await voiceChannel.connect()
 
@@ -36,13 +63,9 @@ async def play(ctx, url : str):
             print("da2")
             info = ydl.extract_info(url, download=False)
             URL = info['formats'][0]['url']
-            voice.play(discord.FFmpegPCMAudio(source=URL, **FFMPEG_OPTIONS))
-            while voice.is_playing():
-                await asyncio.sleep(1)
-
-    
-    
-
+            music.append(URL)
+            music_queue(ctx)
+            
 
 @client.command()
 async def leave(ctx):
