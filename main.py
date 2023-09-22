@@ -1,74 +1,75 @@
 import discord
-from youtube_dl import YoutubeDL
-from asyncio import sleep
-import nacl
+from discord.ext import commands
+import youtube_dl
+import os, sys
+import asyncio
+from bot_shit import *
 from decouple import config
-
-
-YDL_OPTIONS = {'format': 'bestaudio', 'noplaylist':'False'}
-FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
 
 intents = discord.Intents.default()
 intents.message_content = True
 
-client = discord.Client(intents=intents)
+client = commands.Bot(command_prefix='!', intents=intents)
 
-@client.event
-async def on_ready():
-    print(f'We have logged in as {client.user}')
-
-
-music_queue = []
-
-da = "gadost21"
-@bot.command()
-async def play_music(ctx, arg):
-    global vc
-    try:
-        voice_channel = ctx.message.author.voice.channel
-        vc = await voice_channel.connect()
-    except:
-        print('Уже подключен или не удалось подключиться')
-
-    if vc.is_playing():
-        await ctx.send(f'{ctx.message.author.mention}, музыка уже проигрывается.')
-
-    else:
-        with YoutubeDL(YDL_OPTIONS) as ydl:
-            info = ydl.extract_info(arg, download=False)
-
-        URL = info['formats'][0]['url']
-
-        vc.play(discord.FFmpegPCMAudio(executable="ffmpeg\\ffmpeg.exe", source = URL, **FFMPEG_OPTIONS))
-                
-        while vc.is_playing():
-            await sleep(1)
-        if not vc.is_paused():
-            await vc.disconnect()
-
-
-@client.event
-async def on_ready():
-    print(f'We have logged in as {client.user}')
-
-
-@client.event
-async def on_message(message):
-    
-    if message.author == client.user:
+@client.command()
+async def play(ctx, url : str):
+    ydl_options = {
+        'format': 'bestaudio/best',
+        'noplaylist': 'False',
+    }
+    FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
+    voiceChannel = ctx.message.author.voice.channel
+    if voiceChannel == None:
+        await ctx.send("Зайди в канал, дибила кусок")
         return
+    voice = discord.utils.get(client.voice_clients, guild=ctx.guild)
+    if not is_connected(voice):
+        voice = await voiceChannel.connect()
 
-    if message.content.startswith('!hello'):
-        await message.channel.send('Hello!')
+    
+    if voice == None:
+        print("pizda")
+    else:
+        
+        print("da1")
+        with youtube_dl.YoutubeDL(ydl_options) as ydl:
+            print("da2")
+            info = ydl.extract_info(url, download=False)
+            URL = info['formats'][0]['url']
+            voice.play(discord.FFmpegPCMAudio(source=URL, **FFMPEG_OPTIONS))
+            while voice.is_playing():
+                await asyncio.sleep(1)
 
-    if message.content.startswith('!play'):
+    
+    
 
-        url = message.content[6:]
-        music_queue.append(url)
 
-        if message.author.voice and message.author.voice.channel:
-            if not message.guild.voice_client:
-                await play_music(message, music_queue.pop(0))
+@client.command()
+async def leave(ctx):
+    voice_client = discord.utils.get(ctx.bot.voice_clients, guild=ctx.guild)
+    print("da1")
+    if is_connected(voice_client):
+        print("da2")
+        await voice_client.disconnect()
+
+@client.command()
+async def pause(ctx):
+    voice = discord.utils.get(client.voice_clients, guild=ctx.guild)
+    if voice.is_playing():
+        voice.pause()
+
+@client.command()
+async def resume(ctx):
+    voice = discord.utils.get(client.voice_clients, guild=ctx.guild)
+    if voice.is_paused():
+        voice.resume()
+
+@client.command()
+async def stop(ctx):
+    voice_client = discord.utils.get(ctx.bot.voice_clients, guild=ctx.guild)
+    if is_connected(voice_client):
+        await voice_client.disconnect()
+    sys.exit()
 
 
 client.run(config('TOKEN'))
