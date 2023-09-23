@@ -21,10 +21,10 @@ class CogTech(commands.Cog):
         try:
             with open('data.json', 'r') as f:
                 self.data = json.load(f)
-                roles = self.data['roles']
-                roles_status = self.data['roles_status']
-                users = self.data['users']
-                channels = self.data['channels']
+                self.roles = self.data['roles']
+                self.roles_status = self.data['roles_status']
+                self.users = self.data['users']
+                self.channels = self.data['channels']
                 print("data load completed")
         except:
             print("data load failed")
