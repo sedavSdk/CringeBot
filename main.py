@@ -1,9 +1,6 @@
 import discord
 from discord.ext import commands
-import json
 from decouple import config
-import cogs.play as play
-import cogs.technical as technical
 import os
 import importlib
 
@@ -55,5 +52,4 @@ async def on_ready():
 async def test(ctx):
     print(str(ctx.author), str(ctx.author) == "Taiko")
                 
- 
 client.run(config('TOKEN'))
