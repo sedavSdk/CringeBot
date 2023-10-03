@@ -3,7 +3,11 @@ from discord.ext import commands
 from decouple import config
 import os
 import importlib
+import argparse
 
+parser = argparse.ArgumentParser(description='Описание вашей программы')
+parser.add_argument('--server', action='store_true')
+parser.add_argument('--bot', action='store_true')
 
 intents = discord.Intents.default()
 intents.members = True
@@ -51,5 +55,8 @@ async def on_ready():
 @client.command()
 async def test(ctx):
     print(str(ctx.author), str(ctx.author) == "Taiko")
-                
-client.run(config('TOKEN'))
+
+args = parser.parse_args()
+
+if args.bot:                
+    client.run(config('TOKEN'))
