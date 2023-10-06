@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Example</title>
+</head>
+<body>
+    <h1>WebSocket Example</h1>
+    <div id="message-container"></div>
+    <script>
+        const socket = new WebSocket('ws://markmakave.com:8080');
+
+        socket.addEventListener('open', (event) => {
+            console.log('Соединение установлено');
+        });
+
+        socket.addEventListener('message', (event) => {
+            const messageContainer = document.getElementById('message-container');
+            messageContainer.innerHTML += `<p>Получено сообщение: ${event.data}</p>`;
+        });
+
+        socket.addEventListener('close', (event) => {
+            console.log('Соединение закрыто');
+        });
+
+        socket.addEventListener('error', (event) => {
+            console.error('Ошибка соединения', event);
+        });
+    </script>
+</body>
+</html>
