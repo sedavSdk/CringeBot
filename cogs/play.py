@@ -12,17 +12,18 @@ class CogPlay(commands.Cog):
         self.music = []
         self.now_playing = 0
  
-    def music_end(self, ctx):
+    def music_end(self, interaction):
         self.now_playing += 1
-        self.music_queue(ctx)
+        self.music_queue(interaction)
+        print(self.music, self.now_playing)
     
-    def music_queue(self, ctx):
+    def music_queue(self, interaction):
         FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
         if self.now_playing >= len(self.music):
             return
-        voice = discord.utils.get(self.client.voice_clients, guild=ctx.guild)
+        voice = discord.utils.get(self.client.voice_clients, guild=interaction.guild)
         if not voice.is_playing() and not voice.is_paused():
-            voice.play(discord.FFmpegPCMAudio(self.music[self.now_playing], **FFMPEG_OPTIONS), after=lambda e: self.music_end(ctx))
+            voice.play(discord.FFmpegPCMAudio(self.music[self.now_playing], **FFMPEG_OPTIONS), after=lambda e: self.music_end(interaction))
     
     @app_commands.command(name="play", description="123")
     async def play(self, interaction: discord.Interaction, url : str):
@@ -39,47 +40,45 @@ class CogPlay(commands.Cog):
         
         
         if interaction.user.voice == None:
-            await interaction.response.send_message("Зайди в канал, дибила кусок")
+            await interaction.response.send_message("Зайди в канал, дибила кусок", ephemeral=True)
             return
-        await interaction.response.send_message('включаю')
+        
+        
         voiceChannel = interaction.user.voice.channel
         voice = discord.utils.get(interaction.client.voice_clients, guild=interaction.guild)
     
         if not is_connected(voice):
             voice = await voiceChannel.connect()
-    
-        
-        if voice == None:
-            print("pizda")
+
+        if len(self.music) == self.now_playing or voice.is_playing():
+            await interaction.response.send_message('добавляю в очередь', ephemeral=True)
         else:
-            
-            print("da1")
-            with youtube_dl.YoutubeDL(ydl_options) as ydl:
-                print("da2")
-                info = ydl.extract_info(url, download=False)
-                URL = info['formats'][0]['url']
-                self.music.append(URL)
-                self.music_queue(interaction)
+            await interaction.response.send_message('запускаю', ephemeral=True)
+        
+
+        with youtube_dl.YoutubeDL(ydl_options) as ydl:
+            info = ydl.extract_info(url, download=False)
+            URL = info['formats'][0]['url']
+            self.music.append(URL)
+            self.music_queue(interaction)
     
     @app_commands.command(description='Покинуть гс канал')
     async def leave(self, interaction: discord.Interaction):
         await interaction.response.send_message('бб')
         voice_client = discord.utils.get(interaction.client.voice_clients, guild=interaction.guild)
-        print("da1")
         if self.is_connected(voice_client):
-            print("da2")
             await voice_client.disconnect()
     
     @app_commands.command(description='Поставить музыку на паузу')
     async def pause(self, interaction: discord.Interaction):
-        await interaction.response.send_message('пауза')
+        await interaction.response.send_message('пауза', ephemeral=True)
         voice = discord.utils.get(self.client.voice_clients, guild=interaction.guild)
         if voice.is_playing():
             voice.pause()
     
     @app_commands.command(description='Продолжить проигрывание')
     async def resume(self, interaction: discord.Interaction):
-        await interaction.response.send_message('продолжаю')
+        await interaction.response.send_message('продолжаю', ephemeral=True)
         voice = discord.utils.get(self.client.voice_clients, guild=interaction.guild)
         if voice.is_paused():
             voice.resume()
@@ -87,11 +86,18 @@ class CogPlay(commands.Cog):
     @app_commands.command(description='Пропустить трэк')
     async def skip(self, interaction: discord.Interaction):
         voice = discord.utils.get(self.client.voice_clients, guild=interaction.guild)
-        await interaction.response.send_message('пропускаю')
+        await interaction.response.send_message('пропускаю', ephemeral=True)
         if voice.is_playing():
             voice.stop()
-            self.music_end(interaction)
 
+    @app_commands.command(description='Очистить очередь')
+    async def clear(self, interaction: discord.Interaction):
+        voice = discord.utils.get(self.client.voice_clients, guild=interaction.guild)
+        await interaction.response.send_message('чистим чистим чистим', ephemeral=True)
+        self.music = []
+        self.now_playing = -1
+        if voice.is_playing():
+            voice.stop()
     
 
     
