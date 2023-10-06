@@ -50,6 +50,8 @@ async def on_ready():
 
 @client.command()
 async def test(ctx):
-    print(str(ctx.author), str(ctx.author) == "Taiko")
+    channel1 = discord.utils.get(ctx.guild.channels, id=318051378972983298)
+    print(channel1)
+    await channel1.edit(name = 'Переговорная', topic = 'ChannelDescription')
                 
 client.run(config('TOKEN'))
