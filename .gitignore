@@ -8,3 +8,4 @@ cogs/__pycache__/listen.cpython-310.pyc
 cogs/__pycache__/voting.cpython-310.pyc
 logs.txt
 .gitignore
+cogs/__pycache__/random.cpython-310.pyc
