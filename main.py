@@ -47,8 +47,4 @@ async def log(ctx, message):
 async def on_ready():
      print("setup comleted")
 
-@client.command()
-async def test(ctx):
-    print(str(ctx.author), str(ctx.author) == "Taiko")
-        
 client.run(config('TOKEN'))

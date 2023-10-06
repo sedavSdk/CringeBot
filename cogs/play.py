@@ -21,7 +21,7 @@ class CogPlay(commands.Cog):
         if self.now_playing >= len(self.music):
             return
         voice = discord.utils.get(self.client.voice_clients, guild=ctx.guild)
-        if not voice.is_playing():
+        if not voice.is_playing() and not voice.is_paused():
             voice.play(discord.FFmpegPCMAudio(self.music[self.now_playing], **FFMPEG_OPTIONS), after=lambda e: self.music_end(ctx))
     
     @app_commands.command(name="play", description="123")
@@ -73,7 +73,7 @@ class CogPlay(commands.Cog):
     @app_commands.command(description='Поставить музыку на паузу')
     async def pause(self, interaction: discord.Interaction):
         await interaction.response.send_message('пауза')
-        voice = discord.utils.get(self, self.client.voice_clients, guild=interaction.guild)
+        voice = discord.utils.get(self.client.voice_clients, guild=interaction.guild)
         if voice.is_playing():
             voice.pause()
     
@@ -83,6 +83,14 @@ class CogPlay(commands.Cog):
         voice = discord.utils.get(self.client.voice_clients, guild=interaction.guild)
         if voice.is_paused():
             voice.resume()
+
+    @app_commands.command(description='Пропустить трэк')
+    async def skip(self, interaction: discord.Interaction):
+        voice = discord.utils.get(self.client.voice_clients, guild=interaction.guild)
+        await interaction.response.send_message('пропускаю')
+        if voice.is_playing():
+            voice.stop()
+            self.music_end(interaction)
 
     
 
