@@ -48,5 +48,4 @@ async def log(ctx, message):
 async def on_ready():
      print(f"{datetime.datetime.now()}: setup comleted")
 
-        
 client.run(config('TOKEN'))
