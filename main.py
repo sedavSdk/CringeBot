@@ -3,6 +3,7 @@ from discord.ext import commands
 from decouple import config
 import os
 import importlib
+import datetime
 
 intents = discord.Intents.default()
 intents.members = True
@@ -45,10 +46,7 @@ async def log(ctx, message):
 
 @client.event
 async def on_ready():
-     print("setup comleted")
+     print(f"{datetime.datetime.now()}: setup comleted")
 
-@client.command()
-async def test(ctx):
-    print(str(ctx.author), str(ctx.author) == "Taiko")
         
 client.run(config('TOKEN'))

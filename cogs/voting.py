@@ -1,5 +1,6 @@
 from discord.ext import commands
 import discord
+import datetime
 from discord import app_commands
 import asyncio
 
@@ -53,7 +54,7 @@ class CogVoiting(commands.Cog):
             return [c, c2]
         
     async def kill(self, thing_for_del, timeH, timeM, interaction: discord.Interaction):
-        print(f"start timer, vote created by {interaction.user}, expired in {timeH} hours and {timeM} minutes")
+        print(f"{datetime.datetime.now()}: start timer, vote created by {interaction.user}, expired in {timeH} hours and {timeM} minutes")
         await asyncio.sleep(timeH*3600 + timeM*60)
         await thing_for_del.channel.send(embed=thing_for_del.getContent()[1], content="Голосование завершено")
         for i in thing_for_del.children:
