@@ -1,4 +1,5 @@
 from discord.ext import commands
+import datetime
 
 class CogListen(commands.Cog):
     def __init__(self, client):
@@ -8,6 +9,7 @@ class CogListen(commands.Cog):
     
     @commands.Cog.listener()
     async def on_message(self, message):
+        print(f"{datetime.datetime.now()}: new picture in the levers")
         if message.channel.id == self.leverId:
             await message.add_reaction('📍')
     

@@ -1,5 +1,6 @@
 from discord.ext import commands
 import discord
+import datetime
 from discord import app_commands
 import asyncio
 
@@ -16,6 +17,7 @@ class CogVoiting(commands.Cog):
                 self.voteNumber = 0
                 self.ful = ful
                 self.number = number
+                self.channel = None
             
             async def button_callback(self, i):
                     if i.user.id not in self.ful.users:
@@ -52,8 +54,9 @@ class CogVoiting(commands.Cog):
             return [c, c2]
         
     async def kill(self, thing_for_del, timeH, timeM, interaction: discord.Interaction):
-        print(f"start timer, vote created by {interaction.user}, expired in {timeH} hours")
+        print(f"{datetime.datetime.now()}: start timer, vote created by {interaction.user}, expired in {timeH} hours and {timeM} minutes")
         await asyncio.sleep(timeH*3600 + timeM*60)
+        await thing_for_del.channel.send(embed=thing_for_del.getContent()[1], content="Голосование завершено")
         for i in thing_for_del.children:
             del i.callback
             del i
@@ -64,8 +67,8 @@ class CogVoiting(commands.Cog):
         
     
     @app_commands.command(name="vote", description="Создаёт голосование")
-    @app_commands.describe(timeh="Количество часов, которые просуществует голосование (0 по умочанию)")
-    @app_commands.describe(timem="Количество минут, которые просуществует голосование (10 по умочанию)")
+    @app_commands.describe(time_hours="Количество часов, которые просуществует голосование (0 по умочанию)")
+    @app_commands.describe(time_min="Количество минут, которые просуществует голосование (10 по умочанию)")
     @app_commands.describe(var1="Вариант ответа в голосовании")
     @app_commands.describe(var2="Вариант ответа в голосовании")
     @app_commands.describe(var3="Вариант ответа в голосовании")
@@ -74,12 +77,13 @@ class CogVoiting(commands.Cog):
     @app_commands.describe(var6="Вариант ответа в голосовании")
     @app_commands.describe(var7="Вариант ответа в голосовании")
     @app_commands.describe(theme="Тема голосования")
-    async def createVote(self, interaction: discord.Interaction, theme : str, time_hours : int = 0, time_min : int = 10, var1 : str ="pipipoopoo", var2: str="pipipoopoo", var3: str="pipipoopoo", var4: str="pipipoopoo", var5: str="pipipoopoo", var6: str="pipipoopoo", var7: str="pipipoopoo"):
+    async def createVote(self, interaction: discord.Interaction, theme : str, var1 : str, var2: str, time_hours : int = 0, time_min : int = 10, var3: str="pipipoopoo", var4: str="pipipoopoo", var5: str="pipipoopoo", var6: str="pipipoopoo", var7: str="pipipoopoo"):
         args = [var1, var2, var3, var4, var5, var6, var7]
         view = self.Ful(theme, self.id, args)
         self.id = view.id
+        view.channel = interaction.channel
         #await view.kill(time)
-        await interaction.response.send_message(embed=view.getContent()[1], view=view)
+        await interaction.response.send_message(embed=view.getContent()[1], view=view, delete_after=time_hours * 3600 + time_min * 60)
         await self.kill(view, time_hours, time_min, interaction)
     
     @commands.Cog.listener()

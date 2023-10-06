@@ -3,11 +3,12 @@ from discord.ext import commands
 from decouple import config
 import os
 import importlib
+import datetime
 
 intents = discord.Intents.default()
 intents.members = True
 intents.message_content = True
-MY_GUILD = discord.Object(id=318051378972983297)
+MY_GUILD = discord.Object(id=198162811707195392)
 
 class MyClient(commands.Bot):
     def __init__(self, *, intents: discord.Intents):
@@ -45,12 +46,6 @@ async def log(ctx, message):
 
 @client.event
 async def on_ready():
-     print("setup comleted")
+     print(f"{datetime.datetime.now()}: setup comleted")
 
-@client.command()
-async def test(ctx):
-    channel1 = discord.utils.get(ctx.guild.channels, id=318051378972983298)
-    print(channel1)
-    await channel1.edit(name = 'Переговорная', topic = 'ChannelDescription')
-                
 client.run(config('TOKEN'))
