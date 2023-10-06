@@ -4,7 +4,6 @@ from decouple import config
 import os
 import importlib
 
-
 intents = discord.Intents.default()
 intents.members = True
 intents.message_content = True

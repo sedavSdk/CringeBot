@@ -50,7 +50,7 @@ class CogPlay(commands.Cog):
         if not is_connected(voice):
             voice = await voiceChannel.connect()
 
-        if len(self.music) == self.now_playing or voice.is_playing():
+        if len(self.music) != self.now_playing or voice.is_playing():
             await interaction.response.send_message('добавляю в очередь', ephemeral=True)
         else:
             await interaction.response.send_message('запускаю', ephemeral=True)
