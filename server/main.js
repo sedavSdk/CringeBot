@@ -1,7 +1,9 @@
-import { createBoard, playMove } from "./connect4.js";
+const socket = new WebSocket('ws://markmakave.com:8080');
 
-window.addEventListener("DOMContentLoaded", () => {
-  // Initialize the UI.
-  const board = document.querySelector(".board");
-  createBoard(board);
+socket.addEventListener('open', (event) => {
+    console.log('Соединение установлено');
+});
+
+socket.addEventListener('message', (event) => {
+    console.log(`Получено сообщение: ${event.data}`);
 });

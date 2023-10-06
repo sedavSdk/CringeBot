@@ -3,16 +3,11 @@ from discord.ext import commands
 from decouple import config
 import os
 import importlib
-import argparse
-
-parser = argparse.ArgumentParser(description='Описание вашей программы')
-parser.add_argument('--server', action='store_true')
-parser.add_argument('--bot', action='store_true')
 
 intents = discord.Intents.default()
 intents.members = True
 intents.message_content = True
-MY_GUILD = discord.Object(id=318051378972983297)
+MY_GUILD = discord.Object(id=198162811707195392)
 
 class MyClient(commands.Bot):
     def __init__(self, *, intents: discord.Intents):
@@ -55,8 +50,5 @@ async def on_ready():
 @client.command()
 async def test(ctx):
     print(str(ctx.author), str(ctx.author) == "Taiko")
-
-args = parser.parse_args()
-
-if args.bot:                
-    client.run(config('TOKEN'))
+        
+client.run(config('TOKEN'))
