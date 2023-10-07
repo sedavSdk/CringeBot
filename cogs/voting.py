@@ -3,6 +3,7 @@ import discord
 import datetime
 from discord import app_commands
 import asyncio
+import configparser
 
 #da
 
@@ -10,7 +11,11 @@ class CogVoiting(commands.Cog):
     def __init__(self, client):
         self.client = client
         self.id : int = 1
-        self.voteChannel = 1159910588554678272
+
+        config = configparser.ConfigParser()
+        config.read('cogs.ini')
+        self.voteChannel = config.getint('id', 'vote_chennel_id')
+        print(self.voteChannel)
 
     class Ful(discord.ui.View):
         class Btn(discord.ui.Button):
@@ -33,13 +38,13 @@ class CogVoiting(commands.Cog):
                 super().__init__(label="Переголосовать", custom_id=str(custom_id) + "revote")
                 self.ful = ful
                 self.callback = self.button_callback
-                self.style = discord.ButtonStyle.danger
+                self.style = discord.ButtonStyle.blurple
             
             async def button_callback(self, i):
                 if i.user.id not in self.ful.users:
                     await i.response.send_message(content=f"Проголосуй сначала", ephemeral=True)
                 else:
-                    await i.response.send_message(content=f"{i.user} научись с первого раза кнопку нажимать")
+                    await i.response.send_message(content=f"{i.user.mention} научись с первого раза кнопку нажимать")
 
         def __init__(self, theme, id, args=[]):
             super().__init__()
@@ -103,6 +108,7 @@ class CogVoiting(commands.Cog):
             await interaction.response.send_message(embed=view.getContent()[1], view=view, delete_after=time_hours * 3600 + time_min * 60)
             await self.kill(view, time_hours, time_min, interaction)
         else:
+            print(interaction.channel_id == self.voteChannel)
             await interaction.response.send_message(content="Иди в канал для голосований, клоун", ephemeral=True)
     
     @commands.Cog.listener()

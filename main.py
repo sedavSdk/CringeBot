@@ -4,11 +4,15 @@ from decouple import Config, RepositoryEnv
 import os, sys
 from utils import is_connected
 import importlib
+import configparser
 
 intents = discord.Intents.default()
 intents.members = True
 intents.message_content = True
-MY_GUILD = discord.Object(id=318051378972983297)
+
+config = configparser.ConfigParser()
+config.read('botWB.ini')
+MY_GUILD = discord.Object(id=config['id']['guild_id'])
 
 class MyClient(commands.Bot):
     def __init__(self, *, intents: discord.Intents):
@@ -48,7 +52,7 @@ async def on_ready():
      print("setup comleted")
 
 @commands.command(description='Выключить (скорее всего вы это юзать не можете)')
-async def stop(self, interaction: discord.Interaction):
+async def stop(interaction: discord.Interaction):
     if interaction.user.guild_permissions.administrator:
         voice_client = discord.utils.get(interaction.bot.voice_clients, guild=interaction.guild)
         if is_connected(voice_client):

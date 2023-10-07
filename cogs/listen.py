@@ -1,11 +1,14 @@
 from discord.ext import commands
 import datetime
+import configparser
 
 class CogListen(commands.Cog):
     def __init__(self, client):
         self.client = client
+        config = configparser.ConfigParser()
+        config.read('cogs.ini')
 
-        self.leverId = 738030257319444500
+        self.leverId = config['id']['lever_id']
     
     @commands.Cog.listener()
     async def on_message(self, message):
