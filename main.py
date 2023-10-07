@@ -1,14 +1,14 @@
 import discord
 from discord.ext import commands
-from decouple import config
-import os
+from decouple import Config, RepositoryEnv
+import os, sys
+from utils import is_connected
 import importlib
-import datetime
 
 intents = discord.Intents.default()
 intents.members = True
 intents.message_content = True
-MY_GUILD = discord.Object(id=198162811707195392)
+MY_GUILD = discord.Object(id=318051378972983297)
 
 class MyClient(commands.Bot):
     def __init__(self, *, intents: discord.Intents):
@@ -34,8 +34,7 @@ class MyClient(commands.Bot):
  
 client = MyClient(intents=intents)
 
-bot_log = 'bot-logs'
-isLog = True
+
 
 async def log(ctx, message):
     global isLog, bot_log
@@ -46,7 +45,15 @@ async def log(ctx, message):
 
 @client.event
 async def on_ready():
-     print(f"{datetime.datetime.now()}: setup comleted")
+     print("setup comleted")
 
-        
+@commands.command(description='Выключить (скорее всего вы это юзать не можете)')
+async def stop(self, interaction: discord.Interaction):
+    if interaction.user.guild_permissions.administrator:
+        voice_client = discord.utils.get(interaction.bot.voice_clients, guild=interaction.guild)
+        if is_connected(voice_client):
+            await voice_client.disconnect()
+        sys.exit()
+
+config = Config(RepositoryEnv('.env'))
 client.run(config('TOKEN'))
