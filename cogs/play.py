@@ -40,9 +40,9 @@ class CogPlay(commands.Cog):
         
         
         if interaction.user.voice == None:
-            await interaction.response.send_message("Зайди в канал, дибила кусок")
+            await interaction.response.send_message("Зайди в канал, дибила кусок", ephemeral=True)
             return
-        await interaction.response.send_message('включаю')
+        await interaction.response.send_message('включаю', ephemeral=True)
         voiceChannel = interaction.user.voice.channel
         voice = discord.utils.get(interaction.client.voice_clients, guild=interaction.guild)
     
@@ -58,7 +58,7 @@ class CogPlay(commands.Cog):
     @app_commands.command(description='Покинуть гс канал')
     async def leave(self, interaction: discord.Interaction):
         print(f'{datetime.datetime.now()}: {interaction.user} remove bot from channel')
-        await interaction.response.send_message('бб')
+        await interaction.response.send_message('бб', ephemeral=True)
         voice_client = discord.utils.get(interaction.client.voice_clients, guild=interaction.guild)
         if self.is_connected(voice_client):
             await voice_client.disconnect()
@@ -66,7 +66,7 @@ class CogPlay(commands.Cog):
     @app_commands.command(description='Поставить музыку на паузу')
     async def pause(self, interaction: discord.Interaction):
         print(f'{datetime.datetime.now()}: {interaction.user} stop playing')
-        await interaction.response.send_message('пауза')
+        await interaction.response.send_message('пауза', ephemeral=True)
         voice = discord.utils.get(self, self.client.voice_clients, guild=interaction.guild)
         if voice.is_playing():
             voice.pause()
@@ -74,7 +74,7 @@ class CogPlay(commands.Cog):
     @app_commands.command(description='Продолжить проигрывание')
     async def resume(self, interaction: discord.Interaction):
         print(f'{datetime.datetime.now()}: {interaction.user} resume playing')
-        await interaction.response.send_message('продолжаю')
+        await interaction.response.send_message('продолжаю', ephemeral=True)
         voice = discord.utils.get(self.client.voice_clients, guild=interaction.guild)
         if voice.is_paused():
             voice.resume()

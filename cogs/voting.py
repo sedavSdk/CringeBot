@@ -8,10 +8,11 @@ class CogVoiting(commands.Cog):
     def __init__(self, client):
         self.client = client
         self.id : int = 1
+        self.voteChannel = 1159910588554678272
 
     class Ful(discord.ui.View):
         class Btn(discord.ui.Button):
-            def __init__(self, label, custom_id, ful, number, time=1):
+            def __init__(self, label, custom_id, ful, number):
                 super().__init__(label=label, custom_id=custom_id)
                 self.callback = self.button_callback
                 self.voteNumber = 0
@@ -24,6 +25,19 @@ class CogVoiting(commands.Cog):
                         self.ful.vouts[self.number] += 1
                         self.ful.users[i.user.id] = 1
                     await i.response.edit_message(embed=self.ful.getContent()[1])
+        
+        class BtnRevote(discord.ui.Button):
+            def __init__(self, custom_id, ful):
+                super().__init__(label="Переголосовать", custom_id=str(custom_id) + "revote")
+                self.ful = ful
+                self.callback = self.button_callback
+                self.style = discord.ButtonStyle.danger
+            
+            async def button_callback(self, i):
+                if i.user.id not in self.ful.users:
+                    await i.response.send_message(content=f"Проголосуй сначала", ephemeral=True)
+                else:
+                    await i.response.send_message(content=f"{i.user} научись с первого раза кнопку нажимать")
 
         def __init__(self, theme, id, args=[]):
             super().__init__()
@@ -43,13 +57,14 @@ class CogVoiting(commands.Cog):
                     b = self.Btn(label= self.circles[i] + args[i], custom_id=str(self.id), ful=self, number=i)
                     self.add_item(b)
                     self.id += 1
+            self.add_item(self.BtnRevote(custom_id=self.id, ful=self))
             
         def getContent(self):
             c = self.heading + "\n"
             str = ""
             for i in range(0, len(self.content)):
                 if len(self.content[i]) > 0:
-                    str = str + "\n" + self.circles[i] + f' `{self.vouts[i]}` - ' + self.content[i]
+                    str = str + "\n" + "`" + self.circles[i] + f' {self.vouts[i]}` - ' + self.content[i]
             c2 = discord.Embed(color=self.colour, description=str, title=c)
             return [c, c2]
         
@@ -78,13 +93,15 @@ class CogVoiting(commands.Cog):
     @app_commands.describe(var7="Вариант ответа в голосовании")
     @app_commands.describe(theme="Тема голосования")
     async def createVote(self, interaction: discord.Interaction, theme : str, var1 : str, var2: str, time_hours : int = 0, time_min : int = 10, var3: str="pipipoopoo", var4: str="pipipoopoo", var5: str="pipipoopoo", var6: str="pipipoopoo", var7: str="pipipoopoo"):
-        args = [var1, var2, var3, var4, var5, var6, var7]
-        view = self.Ful(theme, self.id, args)
-        self.id = view.id
-        view.channel = interaction.channel
-        #await view.kill(time)
-        await interaction.response.send_message(embed=view.getContent()[1], view=view, delete_after=time_hours * 3600 + time_min * 60)
-        await self.kill(view, time_hours, time_min, interaction)
+        if interaction.channel_id == self.voteChannel:
+            args = [var1, var2, var3, var4, var5, var6, var7]
+            view = self.Ful(theme, self.id, args)
+            self.id = view.id
+            view.channel = interaction.channel
+            await interaction.response.send_message(embed=view.getContent()[1], view=view, delete_after=time_hours * 3600 + time_min * 60)
+            await self.kill(view, time_hours, time_min, interaction)
+        else:
+            await interaction.response.send_message(content="Иди в канал для голосований, клоун", ephemeral=True)
     
     @commands.Cog.listener()
     async def on_button_click(interaction):

@@ -3,7 +3,7 @@ import discord
 from discord import app_commands
 from random import randint
 
-class CogPlay(commands.Cog):
+class CogRandom(commands.Cog):
     def __init__(self, client):
         self.client = client
     
