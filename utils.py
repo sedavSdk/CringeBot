@@ -9,3 +9,8 @@ def check_ban(interaction, role):
         return False
     roles = interaction.user.roles
     return role in roles
+
+async def log(interaction, message, channel):
+    channel = get(interaction.guild.channels, id=channel)
+    if channel:
+        await channel.send(message)
