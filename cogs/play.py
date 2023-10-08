@@ -5,6 +5,7 @@ import configparser
 import youtube_dl
 import sys
 import datetime
+import typing
 sys.path.append("..")
 from utils import *
 
@@ -13,18 +14,23 @@ class CogPlay(commands.Cog):
         self.client = client
         self.music = []
         self.now_playing = 0
+        self.mode = 0
         config = configparser.ConfigParser()
         config.read('botWB.ini')
         self.ban = config['bans']['music_role']
  
     def music_end(self, interaction):
-        self.now_playing += 1
+        if self.mode != 2:
+            self.now_playing += 1
         self.music_queue(interaction)
     
     def music_queue(self, interaction):
         FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
         if self.now_playing >= len(self.music):
-            return
+            if self.mode >= 1:
+                self.now_playing = 0
+            else:
+                return
         voice = discord.utils.get(self.client.voice_clients, guild=interaction.guild)
         if not voice.is_playing() and not voice.is_paused():
             voice.play(discord.FFmpegPCMAudio(self.music[self.now_playing], **FFMPEG_OPTIONS), after=lambda e: self.music_end(interaction))
@@ -53,7 +59,7 @@ class CogPlay(commands.Cog):
             await interaction.response.send_message("Зайди в канал, дибила кусок", ephemeral=True)
             print(f'{datetime.datetime.now()}: {interaction.user} UNSUCCESSFUL(no voice channel) add to queue {url}')
             return
-        await interaction.response.send_message('включаю', ephemeral=True)
+        
 
         
         voiceChannel = interaction.user.voice.channel
@@ -117,6 +123,8 @@ class CogPlay(commands.Cog):
             await interaction.response.send_message('вы не можете использовать команду', ephemeral=True)
             print(f'{datetime.datetime.now()}: {interaction.user} UNSUCCESSFUL(no permission) skip track')
             return
+        if self.mode == 2:
+            self.now_playing +=1
         print(f'{datetime.datetime.now()}: {interaction.user} skip track')
         voice = discord.utils.get(self.client.voice_clients, guild=interaction.guild)
         await interaction.response.send_message('пропускаю', ephemeral=True)
@@ -129,11 +137,27 @@ class CogPlay(commands.Cog):
             await interaction.response.send_message('вы не можете использовать команду', ephemeral=True)
             print(f'{datetime.datetime.now()}: {interaction.user} UNSUCCESSFUL(no permission) clear queue')
             return
-        print(f'{datetime.datetime.now()}: {interaction.user} clear queue')
-        voice = discord.utils.get(self.client.voice_clients, guild=interaction.guild)
-        await interaction.response.send_message('чистим чистим чистим', ephemeral=True)
-        self.music = []
-        self.now_playing = -1
-        if voice.is_playing():
-            voice.stop()
+        if len(self.music) > 0:
+            print(f'{datetime.datetime.now()}: {interaction.user} clear queue')
+            voice = discord.utils.get(self.client.voice_clients, guild=interaction.guild)
+            await interaction.response.send_message('чистим чистим чистим', ephemeral=True)
+            self.music = []
+            self.now_playing = -1
+            if voice.is_playing():
+                voice.stop()
+
+    @app_commands.command(description='Изменить режим очереди')
+    async def mode(self, interaction: discord.Interaction, item: typing.Literal['без повторений', 'с повторениями', 'повтор одной песни']):
+        if check_ban(interaction, self.ban):
+            await interaction.response.send_message('вы не можете использовать команду', ephemeral=True)
+            print(f'{datetime.datetime.now()}: {interaction.user} UNSUCCESSFUL(no permission) edit mode')
+            return
+        new_mode = ['без повторений', 'с повторениями', 'повтор одной песни'].index(item)
+        modeMSG = ['no repeat', 'repeat', 'repeat one song']
+        modeMSG_RU = ['не повторять', 'повторять', 'повторять одну песню']
+        print(f'{datetime.datetime.now()}: {interaction.user} edit mode to {modeMSG[new_mode]}')
+        await interaction.response.send_message(f'режим очереди изменен на {modeMSG_RU[new_mode]}', ephemeral=True)
+        self.mode = new_mode    
+
     
+        

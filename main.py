@@ -35,6 +35,8 @@ class MyClient(commands.Bot):
             await self.create_class_instance(module_name)
         self.tree.copy_global_to(guild=MY_GUILD)
         await self.tree.sync(guild=MY_GUILD)
+
+    
  
 client = MyClient(intents=intents)
 
@@ -43,13 +45,7 @@ client = MyClient(intents=intents)
 async def on_ready():
      print("setup comleted")
 
-@commands.command(description='Выключить (скорее всего вы это юзать не можете)')
-async def stop(interaction: discord.Interaction):
-    if interaction.user.guild_permissions.administrator:
-        voice_client = discord.utils.get(interaction.bot.voice_clients, guild=interaction.guild)
-        if is_connected(voice_client):
-            await voice_client.disconnect()
-        sys.exit()
+
 
 config = Config(RepositoryEnv('.env'))
 client.run(config('TOKEN'))
