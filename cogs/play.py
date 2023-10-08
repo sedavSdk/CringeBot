@@ -17,6 +17,7 @@ class CogPlay(commands.Cog):
         self.mode = 0
         config = configparser.ConfigParser()
         config.read('botWB.ini')
+        self.logs = config['id']['logs_channel_id']
         self.ban = config['bans']['music_role']
  
     def music_end(self, interaction):
@@ -40,9 +41,8 @@ class CogPlay(commands.Cog):
         if check_ban(interaction, self.ban):
             await interaction.response.send_message('вы не можете использовать команду', ephemeral=True)
             print(f'{datetime.datetime.now()}: {interaction.user} UNSUCCESSFUL(no permission) add to queue {url}')
+            await log(interaction, f'{interaction.user} UNSUCCESSFUL(no permission) add to queue {url}', self.logs)
             return
-
-        print(f'{datetime.datetime.now()}: {interaction.user} add to queue {url}')
         ydl_options = {
             'format': 'bestaudio/best',
             'postprocessors': [{
@@ -52,21 +52,23 @@ class CogPlay(commands.Cog):
     
             }]
         }
-        
-        
-        
         if interaction.user.voice == None:
             await interaction.response.send_message("Зайди в канал, дибила кусок", ephemeral=True)
             print(f'{datetime.datetime.now()}: {interaction.user} UNSUCCESSFUL(no voice channel) add to queue {url}')
+            await log(interaction, f'{interaction.user} UNSUCCESSFUL(no voice channel) add to queue {url}', self.logs)
             return
         
-
+        print(f'{datetime.datetime.now()}: {interaction.user} add to queue {url}')
+        log(interaction, f'{interaction.user} add to queue {url}', self.logs)
         
         voiceChannel = interaction.user.voice.channel
         voice = discord.utils.get(interaction.client.voice_clients, guild=interaction.guild)
     
         if not is_connected(voice):
             voice = await voiceChannel.connect()
+            await self.clear(interaction)
+        if self.now_playing < 0:
+            self.now_playing = 0
 
         if len(self.music) != self.now_playing or voice.is_playing():
             await interaction.response.send_message('добавляю в очередь', ephemeral=True)
@@ -80,26 +82,18 @@ class CogPlay(commands.Cog):
             self.music.append(URL)
             self.music_queue(interaction)
     
-    @app_commands.command(description='Покинуть гс канал')
-    async def leave(self, interaction: discord.Interaction):
-        if check_ban(interaction, self.ban):
-            await interaction.response.send_message('вы не можете использовать команду', ephemeral=True)
-            return
-        
-        print(f'{datetime.datetime.now()}: {interaction.user} remove bot from channel')
-        await interaction.response.send_message('бб', ephemeral=True)
-        voice_client = discord.utils.get(interaction.client.voice_clients, guild=interaction.guild)
-        if self.is_connected(voice_client):
-            await voice_client.disconnect()
+    
     
     @app_commands.command(description='Поставить музыку на паузу')
     async def pause(self, interaction: discord.Interaction):
         if check_ban(interaction, self.ban):
             await interaction.response.send_message('вы не можете использовать команду', ephemeral=True)
             print(f'{datetime.datetime.now()}: {interaction.user} UNSUCCESSFUL(no permission) stop playing')
+            log(interaction, f'{interaction.user} UNSUCCESSFUL(no permission) stop playing', self.logs)
             return
         
         print(f'{datetime.datetime.now()}: {interaction.user} stop playing')
+        log(interaction, f'{interaction.user} stop playing', self.logs)
         await interaction.response.send_message('пауза', ephemeral=True)
         voice = discord.utils.get(self.client.voice_clients, guild=interaction.guild)
         if voice.is_playing():
@@ -110,9 +104,11 @@ class CogPlay(commands.Cog):
         if check_ban(interaction, self.ban):
             await interaction.response.send_message('вы не можете использовать команду', ephemeral=True)
             print(f'{datetime.datetime.now()}: {interaction.user} UNSUCCESSFUL(no permission) resume playing')
+            log(interaction, f'{interaction.user} UNSUCCESSFUL(no permission) resume playing', self.logs)
             return
         print(f'{datetime.datetime.now()}: {interaction.user} resume playing')
         await interaction.response.send_message('продолжаю', ephemeral=True)
+        log(interaction, f'{interaction.user} resume playing', self.logs)
         voice = discord.utils.get(self.client.voice_clients, guild=interaction.guild)
         if voice.is_paused():
             voice.resume()
@@ -122,11 +118,13 @@ class CogPlay(commands.Cog):
         if check_ban(interaction, self.ban):
             await interaction.response.send_message('вы не можете использовать команду', ephemeral=True)
             print(f'{datetime.datetime.now()}: {interaction.user} UNSUCCESSFUL(no permission) skip track')
+            log(interaction, f'{interaction.user} UNSUCCESSFUL(no permission) skip track', self.logs)
             return
         if self.mode == 2:
             self.now_playing +=1
         print(f'{datetime.datetime.now()}: {interaction.user} skip track')
         voice = discord.utils.get(self.client.voice_clients, guild=interaction.guild)
+        log(interaction, f'{interaction.user} skip track', self.logs)
         await interaction.response.send_message('пропускаю', ephemeral=True)
         if voice.is_playing():
             voice.stop()
@@ -136,11 +134,13 @@ class CogPlay(commands.Cog):
         if check_ban(interaction, self.ban):
             await interaction.response.send_message('вы не можете использовать команду', ephemeral=True)
             print(f'{datetime.datetime.now()}: {interaction.user} UNSUCCESSFUL(no permission) clear queue')
+            log(interaction, f'{interaction.user} UNSUCCESSFUL(no permission) clear queue', self.logs)
             return
         if len(self.music) > 0:
             print(f'{datetime.datetime.now()}: {interaction.user} clear queue')
             voice = discord.utils.get(self.client.voice_clients, guild=interaction.guild)
             await interaction.response.send_message('чистим чистим чистим', ephemeral=True)
+            log(interaction, f'{interaction.user} clear queue', self.logs)
             self.music = []
             self.now_playing = -1
             if voice.is_playing():
@@ -151,13 +151,37 @@ class CogPlay(commands.Cog):
         if check_ban(interaction, self.ban):
             await interaction.response.send_message('вы не можете использовать команду', ephemeral=True)
             print(f'{datetime.datetime.now()}: {interaction.user} UNSUCCESSFUL(no permission) edit mode')
+            log(interaction, f'{interaction.user} UNSUCCESSFUL(no permission) edit mode', self.logs)
             return
         new_mode = ['без повторений', 'с повторениями', 'повтор одной песни'].index(item)
         modeMSG = ['no repeat', 'repeat', 'repeat one song']
         modeMSG_RU = ['не повторять', 'повторять', 'повторять одну песню']
         print(f'{datetime.datetime.now()}: {interaction.user} edit mode to {modeMSG[new_mode]}')
         await interaction.response.send_message(f'режим очереди изменен на {modeMSG_RU[new_mode]}', ephemeral=True)
+        log(interaction, f'{interaction.user} edit mode to {modeMSG[new_mode]}', self.logs)
         self.mode = new_mode    
 
-    
+    @commands.command(description='Выключить (скорее всего вы это юзать не можете)')
+    @commands.has_permissions(administrator=True)
+    async def stop(self, interaction: discord.Interaction):
+        voice_client = discord.utils.get(interaction.bot.voice_clients, guild=interaction.guild)
+        if is_connected(voice_client):
+            await voice_client.disconnect()
+        sys.exit()
+
+    @app_commands.command(description='Покинуть гс канал')
+    async def leave(self, interaction: discord.Interaction):
+        if check_ban(interaction, self.ban):
+            await interaction.response.send_message('вы не можете использовать команду', ephemeral=True)
+            print(f'{datetime.datetime.now()}: {interaction.user} UNSUCCESSFUL(no permission) remove bot from channel')
+            log(interaction, f'{interaction.user} UNSUCCESSFUL(no permission) remove bot from channel', self.logs)
+            return
+        
+        
+        print(f'{datetime.datetime.now()}: {interaction.user} remove bot from channel')
+        log(interaction, f'{interaction.user} remove bot from channel', self.logs)
+        await interaction.response.send_message('бб', ephemeral=True)
+        voice_client = discord.utils.get(interaction.client.voice_clients, guild=interaction.guild)
+        if self.is_connected(voice_client):
+            await voice_client.disconnect()
         
