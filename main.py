@@ -39,14 +39,6 @@ class MyClient(commands.Bot):
 client = MyClient(intents=intents)
 
 
-
-async def log(ctx, message):
-    global isLog, bot_log
-    if isLog:
-        channel1 = discord.utils.get(ctx.guild.channels, name=bot_log)
-        print(channel1)
-        await channel1.send(message)
-
 @client.event
 async def on_ready():
      print("setup comleted")
