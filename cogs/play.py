@@ -53,7 +53,6 @@ class CogPlay(commands.Cog):
             await interaction.response.send_message("Зайди в канал, дибила кусок", ephemeral=True)
             print(f'{datetime.datetime.now()}: {interaction.user} UNSUCCESSFUL(no voice channel) add to queue {url}')
             return
-        await interaction.response.send_message('включаю', ephemeral=True)
 
         
         voiceChannel = interaction.user.voice.channel
