@@ -13,4 +13,4 @@ def check_ban(interaction, role):
 async def log(interaction, message, channel):
     channel = get(interaction.guild.channels, id=channel)
     if channel:
-        await channel.send(message)
+        await channel.send(message, suppress=True)
