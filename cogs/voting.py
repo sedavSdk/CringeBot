@@ -36,7 +36,7 @@ class CogVoiting(commands.Cog):
         
         class BtnRevote(discord.ui.Button):
             def __init__(self, custom_id, ful):
-                super().__init__(label="🔄Переголосовать", custom_id=str(custom_id) + "revote")
+                super().__init__(label="🔄 Переголосовать", custom_id=str(custom_id) + "revote")
                 self.ful = ful
                 self.callback = self.button_callback
                 self.style = discord.ButtonStyle.blurple
@@ -71,7 +71,7 @@ class CogVoiting(commands.Cog):
             for i in range(0, len(args)):
                 if args[i]!="pipipoopoo":
                     self.content[i] = self.args[i]
-                    b = self.Btn(label= self.circles[i] + args[i], custom_id=str(self.id), ful=self, number=i)
+                    b = self.Btn(label= self.circles[i] + ' ' + args[i], custom_id=str(self.id), ful=self, number=i)
                     self.add_item(b)
                     self.id += 1
             self.add_item(self.BtnRevote(custom_id=self.id, ful=self))
