@@ -60,6 +60,7 @@ class CogPlay(commands.Cog):
         
         print(f'{datetime.datetime.now()}: {interaction.user} add to queue {url}')
         log(interaction, f'{interaction.user} add to queue {url}', self.logs)
+
         
         voiceChannel = interaction.user.voice.channel
         voice = discord.utils.get(interaction.client.voice_clients, guild=interaction.guild)
