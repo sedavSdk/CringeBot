@@ -12,10 +12,9 @@ class CogVoiting(commands.Cog):
         self.client = client
         self.id : int = 1
 
-        config = configparser.ConfigParser()
-        config.read('cogs.ini')
-        self.voteChannel = config.getint('id', 'vote_chennel_id')
-        print(self.voteChannel)
+        self.config = configparser.ConfigParser()
+        self.config.read('cogs.ini')
+        self.voteChannel = self.config.getint('id', 'vote_chennel_id')
 
     class Ful(discord.ui.View):
         class Btn(discord.ui.Button):
@@ -44,9 +43,13 @@ class CogVoiting(commands.Cog):
                 if i.user.id not in self.ful.users:
                     await i.response.send_message(content=f"Проголосуй сначала", ephemeral=True)
                 else:
-                    await i.response.send_message(content=f"{i.user.mention} научись с первого раза кнопку нажимать")
+                    role = discord.utils.get(i.guild.roles, name="Позорник")
+                    if role not in i.user.roles:
+                        await i.user.add_roles(role)
+                        await self.ful.boardOfShame.send(f"{i.user.mention} научись с первого раза кнопку нажимать")
+                    await i.response.send_message(content=f"Ищи себя на доске позора", ephemeral=True)
 
-        def __init__(self, theme, id, args=[]):
+        def __init__(self, theme, id, config, guild, args=[]):
             super().__init__()
             self.args = args
             self.id = id
@@ -54,9 +57,10 @@ class CogVoiting(commands.Cog):
             self.content = [""] * 7
             self.vouts = [0] * 7
             self.circles = ["🔵", "🔴", "🟢", "🟠", "🟣", "🟤", "🟡"]
-            self.tcircles = ["1️⃣", "2️⃣", "3️⃣", "🟤", "🟤", "🟤", "🟤"]
             self.users = {}
             self.colour = discord.Colour.from_rgb(173, 255, 47)
+            self.boardOfShameId = config.getint('id', 'board_of_shame_id')
+            self.boardOfShame = discord.utils.get(guild.channels, id=self.boardOfShameId)
 
             for i in range(0, len(args)):
                 if args[i]!="pipipoopoo":
@@ -102,13 +106,12 @@ class CogVoiting(commands.Cog):
     async def createVote(self, interaction: discord.Interaction, theme : str, var1 : str, var2: str, time_hours : int = 0, time_min : int = 10, var3: str="pipipoopoo", var4: str="pipipoopoo", var5: str="pipipoopoo", var6: str="pipipoopoo", var7: str="pipipoopoo"):
         if interaction.channel_id == self.voteChannel:
             args = [var1, var2, var3, var4, var5, var6, var7]
-            view = self.Ful(theme, self.id, args)
+            view = self.Ful(theme, self.id, self.config, interaction.guild, args)
             self.id = view.id
             view.channel = interaction.channel
             await interaction.response.send_message(embed=view.getContent()[1], view=view, delete_after=time_hours * 3600 + time_min * 60)
             await self.kill(view, time_hours, time_min, interaction)
         else:
-            print(interaction.channel_id == self.voteChannel)
             await interaction.response.send_message(content="Иди в канал для голосований, клоун", ephemeral=True)
     
     @commands.Cog.listener()
