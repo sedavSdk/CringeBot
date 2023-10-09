@@ -6,6 +6,7 @@ import asyncio
 import configparser
 from random import choice
 import time
+import gc
 
 #da
 
@@ -18,6 +19,7 @@ class CogVoiting(commands.Cog):
         self.config.read('cogs.ini')
         self.voteChannel = self.config.getint('id', 'vote_chennel_id')
 
+
     class Ful(discord.ui.View):
         class Btn(discord.ui.Button):
             def __init__(self, label, custom_id, ful, number):
@@ -27,6 +29,7 @@ class CogVoiting(commands.Cog):
                 self.ful = ful
                 self.number = number
                 self.channel = None
+
             
             async def button_callback(self, i):
                     if i.user.id not in self.ful.users:
@@ -67,6 +70,7 @@ class CogVoiting(commands.Cog):
             self.message_time = datetime.datetime.now()
             self.time_hour = time_hour
             self.time_minute = time_minute
+            self.timeout = None
 
             for i in range(0, len(args)):
                 if args[i]!="pipipoopoo":
@@ -82,14 +86,23 @@ class CogVoiting(commands.Cog):
             for i in range(0, len(self.content)):
                 if len(self.content[i]) > 0:
                     str += "\n" + "`" + self.circles[i] + f' {self.vouts[i]}` - ' + self.content[i]
-            str += "\n\nГолосование завершится " + f'<t:{int(time.mktime(datetime.datetime.now().timetuple()) + self.time_hour * 3600 + self.time_minute * 60)}:R>'
+            str += "\n\nГолосование завершится " + f'<t:{int(time.mktime(self.message_time.timetuple()) + self.time_hour * 3600 + self.time_minute * 60)}:R>'
+            c2 = discord.Embed(color=self.colour, description=str, title=c)
+            return [c, c2]
+        
+        def getContentNoTimer(self):
+            c = self.heading + "\n"
+            str = "" 
+            for i in range(0, len(self.content)):
+                if len(self.content[i]) > 0:
+                    str += "\n" + "`" + self.circles[i] + f' {self.vouts[i]}` - ' + self.content[i]
             c2 = discord.Embed(color=self.colour, description=str, title=c)
             return [c, c2]
         
     async def kill(self, thing_for_del, timeH, timeM, interaction: discord.Interaction):
         print(f"{datetime.datetime.now()}: start timer, vote created by {interaction.user}, expired in {timeH} hours and {timeM} minutes")
         await asyncio.sleep(timeH*3600 + timeM*60)
-        await thing_for_del.channel.send(embed=thing_for_del.getContent()[1], content="Голосование завершено")
+        await thing_for_del.channel.send(embed=thing_for_del.getContentNoTimer()[1], content="✅ Голосование завершено")
         for i in thing_for_del.children:
             del i.callback
             del i
@@ -125,3 +138,8 @@ class CogVoiting(commands.Cog):
     async def on_button_click(interaction):
         id = interaction.custom_id
         await interaction.respond(content={id})
+
+    @commands.command()
+    async def check(self, interaction):
+        collected = gc.collect()
+        print("Garbage collector: collected %d objects." % (collected))
