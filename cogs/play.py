@@ -19,6 +19,7 @@ class CogPlay(commands.Cog):
         config.read('botWB.ini')
         self.logs = config.getint('id', 'logs_channel_id')
         self.ban = config['bans']['music_role']
+        self.music_channel = config.getint('id', 'music_channel_id')
  
     def music_end(self, interaction):
         if self.mode != 2:
@@ -62,8 +63,9 @@ class CogPlay(commands.Cog):
         await log(interaction, f'{interaction.user} add to queue {url}', self.logs)
 
         
-        voiceChannel = interaction.user.voice.channel
-        voice = discord.utils.get(interaction.client.voice_clients, guild=interaction.guild)
+        
+        voice = discord.utils.get(interaction.client.voice_clients, id=self.music_channel)
+        voiceChannel = interaction.guild.get_channel(self.music_channel)
     
         if not is_connected(voice):
             voice = await voiceChannel.connect()
