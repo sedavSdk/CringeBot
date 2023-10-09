@@ -53,7 +53,7 @@ class CogVoiting(commands.Cog):
                         await i.user.add_roles(role)
                         m = ["может вообще не будешь голосовать?", "может ну его нахуй вообще?", "может съебёшься с канала?"]
                         await self.ful.boardOfShame.send(f"{i.user.mention} если ты с первого раза не можешь нормально проголосовать, {choice(m)}")
-                    await i.response.send_message(content=f"Ищи себя на доске позора", ephemeral=True)
+                    await i.response.send_message(content=f"Ищи себя на доске позора {self.ful.boardOfShame.mention}", ephemeral=True)
 
         def __init__(self, theme, id, config, guild, time_hour, time_minute, args=[]):
             super().__init__()
