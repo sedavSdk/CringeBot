@@ -45,7 +45,7 @@ class CogVoiting(commands.Cog):
                     self.content[i] = self.args[i]
                     b = self.Btn(label= self.circles[i] + ' ' + args[i], custom_id=f"{self.id}.{self.nowId}", ful=self, number=i)
                     self.add_item(b)
-                    self.NowId += 1
+                    self.nowId += 1
             self.add_item(self.BtnRevote(custom_id=f"{self.id}.{self.nowId}", ful=self))
             
         def getContent(self, timer=False):
