@@ -6,7 +6,6 @@ import asyncio
 import configparser
 from random import choice
 import time
-import gc
 
 #da
 
@@ -48,7 +47,7 @@ class CogVoiting(commands.Cog):
                 if i.user.id not in self.ful.users:
                     await i.response.send_message(content=f"Проголосуй сначала", ephemeral=True)
                 else:
-                    role = discord.utils.get(i.guild.roles, name="Позорник")
+                    role = discord.utils.get(i.guild.roles, name="Переголосовавший")
                     if role not in i.user.roles:
                         await i.user.add_roles(role)
                         m = ["может вообще не будешь голосовать?", "может ну его нахуй вообще?", "может съебёшься с канала?"]
@@ -125,6 +124,17 @@ class CogVoiting(commands.Cog):
     @app_commands.describe(theme="Тема голосования")
     async def createVote(self, interaction: discord.Interaction, theme : str, variant1 : str, variant2: str, time_hours : int = 0, time_min : int = 10, variant3: str="pipipoopoo", variant4: str="pipipoopoo", variant5: str="pipipoopoo", variant6: str="pipipoopoo", variant7: str="pipipoopoo"):
         if interaction.channel_id == self.voteChannel:
+            if time_hours > 24:
+                time_hours = 24
+            if time_hours < 0:
+                time_hours = 0
+            if time_min > 59:
+                time_min = 59
+            if time_min < 1:
+                if time_hours > 0:
+                    time_min = 0
+                else:
+                    time_min = 1
             args = [variant1, variant2, variant3, variant4, variant5, variant6, variant7]
             view = self.Ful(theme, self.id, self.config, interaction.guild, time_hours, time_min, args)
             self.id = view.id
@@ -132,14 +142,9 @@ class CogVoiting(commands.Cog):
             await interaction.response.send_message(embed=view.getContent()[1], view=view, delete_after=time_hours * 3600 + time_min * 60)
             await self.kill(view, time_hours, time_min, interaction)
         else:
-            await interaction.response.send_message(content="Иди в канал для голосований, клоун", ephemeral=True)
+            await interaction.response.send_message(content="Иди в <#1159910588554678272>, клоун", ephemeral=True)
     
     @commands.Cog.listener()
     async def on_button_click(interaction):
         id = interaction.custom_id
         await interaction.respond(content={id})
-
-    @commands.command()
-    async def check(self, interaction):
-        collected = gc.collect()
-        print("Garbage collector: collected %d objects." % (collected))
