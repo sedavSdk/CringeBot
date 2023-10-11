@@ -14,3 +14,6 @@ async def log(interaction, message, channel):
     channel = get(interaction.guild.channels, id=channel)
     if channel:
         await channel.send(message)
+
+def clamp(n, minn, maxn):
+    return max(min(maxn, n), minn)
