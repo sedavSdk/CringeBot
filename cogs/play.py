@@ -7,7 +7,7 @@ import sys
 import datetime
 import typing
 sys.path.append("..")
-from utils import *
+from utils import check_ban, log, is_connected
 
 class CogPlay(commands.Cog):
     def __init__(self, client):

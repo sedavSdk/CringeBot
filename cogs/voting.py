@@ -54,7 +54,7 @@ class CogVoiting(commands.Cog):
                 if len(self.content[i]) > 0:
                     str += "\n" + "`" + self.circles[i] + f' {self.vouts[i]}` - ' + self.content[i]
             if timer:
-                str += "\n\nГолосование завершится " + f'<t:{int(time.mktime(self.message_time.timetuple()) + self.time_hour * 3600 + self.time_minute * 60)}:R>'
+                str += "\n\nГолосование завершится " + f'<t:{int(time.mktime(self.message_time.timetuple()) + self.time)}:R>'
             c2 = discord.Embed(color=self.colour, description=str, title=self.heading + "\n")
             return c2
         
@@ -73,7 +73,7 @@ class CogVoiting(commands.Cog):
                     if interaction.user.id not in self.ful.users:
                         self.ful.vouts[self.number] += 1
                         self.ful.users[interaction.user.id] = 1
-                    await interaction.response.edit_message(embed=self.ful.getContent())
+                    await interaction.response.edit_message(embed=self.ful.getContent(timer=True))
         
         class BtnRevote(discord.ui.Button):
             def __init__(self, custom_id, ful):
@@ -94,9 +94,9 @@ class CogVoiting(commands.Cog):
                     await interaction.response.send_message(content=f"Ищи себя на доске позора {self.ful.boardOfShame.mention}", ephemeral=True)
         
     async def kill(self, thing_for_del, time, interaction: discord.Interaction):
-        print(f"{datetime.datetime.now()}: start timer, vote created by {interaction.user}, expired in {time} seconds, id = {thing_for_del.id} ")
+        print(f"{datetime.datetime.now()}: start timer, vote created by {interaction.user}, expired in {time / 60} seconds, id = {thing_for_del.id} ")
         await asyncio.sleep(time)
-        await thing_for_del.channel.send(embed=thing_for_del.getContentNoTimer()[1], content="✅ Голосование завершено")
+        await thing_for_del.channel.send(embed=thing_for_del.getContent(), content="✅ Голосование завершено")
         print(f"{datetime.datetime.now()}: vote created by {interaction.user} with id = {thing_for_del.id}  ended")
         del thing_for_del
 
@@ -120,10 +120,11 @@ class CogVoiting(commands.Cog):
             time_hours = clamp(time_hours, 0, 24)
             time_min = clamp(time_min, 1, 59)
             args = [variant1, variant2, variant3, variant4, variant5, variant6, variant7]
-            view = self.Ful(theme, self.id, self.config, interaction.guild, time_hours * 3600 + time_min * 60, args)
+            time = time_hours * 3600 + time_min * 60
+            view = self.Ful(theme, self.id, self.config, interaction.guild, time, args)
             self.id = view.id
             view.channel = interaction.channel
-            await interaction.response.send_message(embed=view.getContent(timer=True), view=view, delete_after=time_hours * 3600 + time_min * 60)
-            await self.kill(view, time_hours, time_min, interaction)
+            await interaction.response.send_message(embed=view.getContent(timer=True), view=view, delete_after=time)
+            await self.kill(view, time, interaction)
         else:
             await interaction.response.send_message(content="Иди в <#1159910588554678272>, клоун", ephemeral=True)
