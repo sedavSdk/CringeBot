@@ -54,30 +54,38 @@ class CogPlay(commands.Cog):
             }]
         }
         
-        print(f'{datetime.datetime.now()}: {interaction.user} add to queue {url}')
-        await log(interaction, f'**{interaction.user}** add to queue <{url}>', self.logs)
+        
 
         
         
-        self.channel = self.client.get_channel(self.music_channel)
-    
-        if not is_connected(interaction, self.channel):
-            self.voice = await self.channel.connect()
-            await self.clearLocal(interaction)
-        if self.now_playing < 0:
-            self.now_playing = 0
+        
 
-        if len(self.music) != self.now_playing or self.voice.is_playing():
-            await interaction.response.send_message('добавляю в очередь', ephemeral=True)
-        else:
-            await interaction.response.send_message('запускаю', ephemeral=True)
+        
         
 
         with youtube_dl.YoutubeDL(ydl_options) as ydl:
-            info = ydl.extract_info(url, download=False)
-            URL = info['formats'][0]['url']
-            self.music.append(URL)
-            self.music_queue(interaction)
+            try:
+                info = ydl.extract_info(url, download=False)
+                URL = info['formats'][0]['url']
+                self.music.append(URL)
+                self.channel = self.client.get_channel(self.music_channel)
+                if not is_connected(interaction, self.channel):
+                    self.voice = await self.channel.connect()
+                    await self.clearLocal(interaction)
+                if self.now_playing < 0:
+                    self.now_playing = 0
+                print(f'{datetime.datetime.now()}: {interaction.user} add to queue {url}')
+                await log(interaction, f'**{interaction.user}** add to queue <{url}>', self.logs)
+                if len(self.music) != self.now_playing or self.voice.is_playing():
+                    await interaction.response.send_message('добавляю в очередь', ephemeral=True)
+                else:
+                    await interaction.response.send_message('запускаю', ephemeral=True)
+                self.music_queue(interaction)
+            except:
+                await interaction.response.send_message('плохая ссылка', ephemeral=True)
+                print(f'{datetime.datetime.now()}: {interaction.user} UNSUCCESSFUL(bad link) add to queue {url}')
+                await log(interaction, f'**{interaction.user}** UNSUCCESSFUL(bad link) add to queue {url}', self.logs)
+                
     
     
     
