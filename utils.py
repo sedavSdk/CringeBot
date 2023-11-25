@@ -1,7 +1,8 @@
 from discord.utils import get
 
-def is_connected(voice_client):
-    return voice_client and voice_client.is_connected()
+
+def is_connected(interaction, channel):
+    return channel and interaction.guild.voice_client
 
 def check_ban(interaction, role):
     role = get(interaction.guild.roles, name=role)
@@ -13,4 +14,4 @@ def check_ban(interaction, role):
 async def log(interaction, message, channel):
     channel = get(interaction.guild.channels, id=channel)
     if channel:
-        await channel.send(message, suppress=True)
+        await channel.send(message)
