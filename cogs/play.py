@@ -170,7 +170,7 @@ class CogPlay(commands.Cog):
         self.mode = new_mode    
 
     @commands.command(description='Выключить (скорее всего вы это юзать не можете)')
-    @commands.has_permissions(administrator=True)
+    @commands.has_role("botMaster")
     async def stop(self, interaction: discord.Interaction):
         voice_client = discord.utils.get(interaction.bot.voice_clients, guild=interaction.guild)
         if is_connected(interaction, voice_client):
