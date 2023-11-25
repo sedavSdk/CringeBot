@@ -13,3 +13,4 @@ cogs.ini
 .gitignore
 botWB.ini
 
+server.py

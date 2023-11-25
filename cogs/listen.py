@@ -13,7 +13,7 @@ class CogListen(commands.Cog):
         config = configparser.ConfigParser()
         config.read('cogs.ini')
 
-        self.leverId = config['id']['lever_id']
+        self.leverId = config.getint('id', 'lever_id')
 
         self.systemId = config.getint('id', 'system_id')
         self.logovoId = config.getint('id', 'guild_id')

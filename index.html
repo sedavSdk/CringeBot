@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Код символа</title>
+</head>
+<body>
+    <h1>Код символа</h1>
+    <input type="text" id="userInput" placeholder="Введите число">
+    <button onclick="checkNumber()">найти код</button>
+    <p id="result"></p>
+
+    <script>
+        function checkNumber() {
+            var userInput = document.getElementById('userInput').value;
+
+            const codePoint = userInput.codePointAt(0).toString(16).toUpperCase();
+            document.getElementById('result').innerText = codePoint;
+            console.log(codePoint);
+        }
+    </script>
+</body>
+</html>

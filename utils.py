@@ -30,11 +30,8 @@ def doImage(url):
     image2 = image2.resize((77, 77))
 
     combined_image = image1.copy()
-
-    # Наложите меньшее изображение поверх большего
     combined_image.paste(image2, (18, 20))
     combined_image.save("результат.png")
 
-    # Освободите ресурсы
     image1.close()
     image2.close()
