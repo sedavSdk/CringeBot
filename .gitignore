@@ -12,3 +12,5 @@ cogs/__pycache__/random.cpython-310.pyc
 cogs.ini
 .gitignore
 botWB.ini
+
+server.py
