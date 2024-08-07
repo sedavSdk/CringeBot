@@ -11,7 +11,7 @@ intents.members = True
 intents.message_content = True
 
 config = configparser.ConfigParser()
-config.read('botWB.ini')
+config.read('cogs.ini')
 MY_GUILD = discord.Object(id=config['id']['guild_id'])
 
 class MyClient(commands.Bot):
