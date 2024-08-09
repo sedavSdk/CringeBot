@@ -32,6 +32,18 @@ class CogInvites(commands.Cog):
             "mbWFuhCkKR": "ㆍ`⬛ Общее     `ㆍ⬛ **Для продвижения**",
             "F5APNd6eE3": "ㆍ`❌ Шутеры    `ㆍ<:1hunt:1187160041871130646> **Hunt: Showdown**"
         }
+        # тут в значении словаря нужно вбить сообщение которое отправляется пользователю
+        self.invite_messages = {
+            "B3uxrkS9RE": "General",
+            "hBt2dYUJjf": "Shooter",
+            "N3xEECQtyU": "ARPG",
+            "hUNDCqXmnp": "ARPG",
+            "Q8EYP5bKDk": "Coop",
+            "DYxeBWswjD": "Coop",
+            "MkZ8Mfkc2R": "Coop",
+            "mbWFuhCkKR": "General",
+            "F5APNd6eE3": "Shooter",
+        }
         self.out = {}
     
     async def create_info(self):
@@ -47,6 +59,18 @@ class CogInvites(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self): 
         self.guild = self.client.guilds[0]
+        self.invites = await self.guild.invites()
+
+    @commands.Cog.listener()
+    async def on_member_join(self, member):
+        for invite in self.invites:
+            if invite.uses > next((inv.uses for inv in self.invites if inv.code == invite.code), 0):
+                invite_code = invite.code
+                message = self.invite_messages.get(invite_code, 'Добро пожаловать на сервер!') # тут вместо этого сообщения нужно вбить сообщение которое отправляется пользователю если он переходит по какой то левой ссылке
+                await member.send(message)
+
+        
+
 
     @app_commands.command(name="invites", description='статистика по приглашениям')
     async def show(self, interaction: discord.Interaction):
