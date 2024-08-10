@@ -42,7 +42,7 @@ class CogInvites(commands.Cog):
             "DYxeBWswjD": "Coop",
             "MkZ8Mfkc2R": "Coop",
             "mbWFuhCkKR": "General",
-            "F5APNd6eE3": "Shooter",
+            "F5APNd6eE3": "Shooter"
         }
         self.out = {}
     
@@ -63,11 +63,20 @@ class CogInvites(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
-        for invite in self.invites:
+        invites_after_join = await self.guild.invites()
+
+        for invite in invites_after_join:
             if invite.uses > next((inv.uses for inv in self.invites if inv.code == invite.code), 0):
                 invite_code = invite.code
-                message = self.invite_messages.get(invite_code, 'Добро пожаловать на сервер!') # тут вместо этого сообщения нужно вбить сообщение которое отправляется пользователю если он переходит по какой то левой ссылке
-                await member.send(message)
+                message = self.invite_messages.get(invite.code, 'Добро пожаловать на сервер!')
+                
+                try:
+                    await member.send(message)
+                except discord.Forbidden:
+                    pass
+                break
+        
+        self.invites = invites_after_join
 
         
 
